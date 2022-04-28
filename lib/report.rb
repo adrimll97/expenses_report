@@ -3,7 +3,6 @@
 class Report
   require 'csv'
 
-  DATA_PATH = 'data.csv'
   EXPENSES = {
     transportation: {
       normal: 0.12,
@@ -29,9 +28,13 @@ class Report
     end
   end
 
-  def calculate
-    data = CSV.read DATA_PATH
+  def calculate(file_path)
+    data = CSV.read file_path
     data.each do |concept, units|
+      unless EXPENSES.keys.include? concept.to_sym
+        p "The concept #{concept} is not supported"
+        next
+      end
       add_expense(concept, units.to_i)
     end
     calculate_refund
@@ -46,6 +49,7 @@ class Report
   def calculate_refund
     total = 0
     @expenses.each do |concept, units|
+      discount_refund = 0
       discount_refund = units - EXPENSES[concept][:num_discount] if units > EXPENSES[concept][:num_discount]
       total += EXPENSES[concept][:normal] * (units - discount_refund)
       total += EXPENSES[concept][:discount] * discount_refund
